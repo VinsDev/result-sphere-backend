@@ -3,11 +3,18 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "3001:3001"
     depends_on:
       - db
     environment:
-      - DATABASE_URL=mysql://root:winner@db:3306/ResultSphere
+      - DB_NAME=ResultSphere
+      - DB_USER=root
+      - DB_PASSWORD=winner
+      - DB_HOST=db
+      - PORT=3001
+      - JWT_SECRET=wxyz
+      - EMAIL=orbitaltech32@gmail.com
+      - PASSMAILER=kcmrreiekjdbfzlk
 
   db:
     image: mysql:5.7
