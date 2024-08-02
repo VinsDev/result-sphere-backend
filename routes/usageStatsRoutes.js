@@ -6,7 +6,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.get('/', usageStatisticsController.getAllStats);
 router.get('/school', authMiddleware, usageStatisticsController.getStatsForSchool);
 router.get('/:id', usageStatisticsController.getStatsById);
-router.put('/:id', authMiddleware, usageStatisticsController.updateUsageStatistics);
+router.put('/:id', usageStatisticsController.updateUsageStatistics);
 router.delete('/:id', usageStatisticsController.deleteStats);
 
 module.exports = router;

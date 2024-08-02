@@ -23,12 +23,12 @@ exports.getStatsById = async (req, res) => {
 };
 
 exports.updateUsageStatistics = async (req, res) => {
-    const school_id = req.user.school_id;
+    const { id } = req.params;
     const { units_purchased, units_left, plan, status } = req.body;
 
     try {
         // Find the usage statistics for the specified school
-        let usageStatistics = await UsageStatistics.findOne({ where: { school_id } });
+        let usageStatistics = await UsageStatistics.findOne({ where: { id } });
 
         if (!usageStatistics) {
             return res.status(404).json({ error: 'Usage statistics not found for this school' });
