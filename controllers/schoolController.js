@@ -181,6 +181,7 @@ exports.createSchool = async (req, res, next) => {
 
         res.status(201).json(school);
     } catch (error) {
+        console.log(error)
         next(error);
     }
 };

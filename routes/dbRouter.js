@@ -225,6 +225,6 @@ async function initializeDatabase(req, res) {
 }
 
 // Route
-router.post('/initialize', initializeDatabase);
+router.get('/initialize', initializeDatabase);
 
 module.exports = router;
