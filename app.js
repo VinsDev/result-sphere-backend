@@ -27,6 +27,7 @@ const resultReleasesRoutes = require('./routes/resultReleasesRoutes');
 const assessmentScoreRoutes = require('./routes/assessmentScoreRoutes');
 const gradeRuleRoutes = require('./routes/gradeRuleRoutes');
 const usageStatsRoutes = require('./routes/usageStatsRoutes');
+const dbRouter = require('./routes/dbRouter');
 
 // Middleware
 app.use(bodyParser.json());
@@ -51,6 +52,7 @@ app.use('/assessment-scores', assessmentScoreRoutes);
 app.use('/grade-rules', gradeRuleRoutes);
 app.use('/grade-rules', gradeRuleRoutes);
 app.use('/usage-stats', usageStatsRoutes);
+app.use('/db', dbRouter);
 
 app.get('/health', (req, res) => {
     res.send({ message: "Server active . . ." });
