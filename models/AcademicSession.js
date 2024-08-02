@@ -32,7 +32,7 @@ const AcademicSession = sequelize.define('AcademicSession', {
     defaultValue: false,
   },
 }, {
-  tableName: 'AcademicSessions',
+  tableName: 'AcademicSessions'.toLowerCase(),
   timestamps: false,
 });
 

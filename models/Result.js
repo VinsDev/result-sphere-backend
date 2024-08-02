@@ -68,7 +68,7 @@ const Result = sequelize.define('Result', {
     allowNull: true,  // Allow null if lowest score is not yet set
   },
 }, {
-  tableName: 'Results',
+  tableName: 'Results'.toLowerCase(),
   timestamps: false,
 });
 

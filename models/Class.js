@@ -20,7 +20,7 @@ const Class = sequelize.define('Class', {
     allowNull: false,
   },
 }, {
-  tableName: 'Classes',
+  tableName: 'Classes'.toLowerCase(),
   timestamps: false,
 });
 

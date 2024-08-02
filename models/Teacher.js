@@ -37,7 +37,7 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: false,
   },
 }, {
-  tableName: 'Teachers',
+  tableName: 'Teachers'.toLowerCase(),
   timestamps: false,
 });
 

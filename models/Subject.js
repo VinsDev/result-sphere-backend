@@ -37,7 +37,7 @@ const Subject = sequelize.define('Subject', {
     allowNull: false,
   },
 }, {
-  tableName: 'Subjects',
+  tableName: 'Subjects'.toLowerCase(),
   timestamps: false,
 });
 

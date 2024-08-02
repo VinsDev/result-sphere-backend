@@ -74,7 +74,7 @@ const School = sequelize.define('School', {
     defaultValue: false,
   },
 }, {
-  tableName: 'Schools',
+  tableName: 'Schools'.toLowerCase(),
   timestamps: false,
 });
 
