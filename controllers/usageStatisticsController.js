@@ -28,7 +28,7 @@ exports.updateUsageStatistics = async (req, res) => {
 
     try {
         // Find the usage statistics for the specified school
-        let usageStatistics = await UsageStatistics.findOne({ where: { id } });
+        let usageStatistics = await UsageStatistics.findOne({ where: { school_id: id } });
 
         if (!usageStatistics) {
             return res.status(404).json({ error: 'Usage statistics not found for this school' });
