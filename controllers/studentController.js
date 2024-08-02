@@ -9,6 +9,7 @@ const Term = require('../models/Term');
 const Class = require('../models/Class');
 const sequelize = require('../config/database');
 const jwt = require('jsonwebtoken');
+const UsageStatistics = require('../models/UsageStatistics');
 
 // Get all students
 exports.getAllStudents = async (req, res, next) => {
@@ -112,6 +113,12 @@ exports.createStudent = async (req, res, next) => {
                 parents_contact_info
             }, { transaction: t });
 
+            let usageStatistics = await UsageStatistics.findOne({ where: { school_id: school_id } });
+
+            usageStatistics.units_left = usageStatistics.units_left - 1;
+
+            await usageStatistics.save();
+
             // Create the student enrollment
             const enrollment = await StudentEnrollment.create({
                 student_id: student.student_id,
@@ -164,7 +171,7 @@ exports.createStudent = async (req, res, next) => {
                 for (const assessment of assessments) {
                     await AssessmentScore.create({
                         result_id: result.result_id,
-                        assessment_id: assessment.assessment_id, 
+                        assessment_id: assessment.assessment_id,
                         score: -1
                     }, { transaction: t });
                 }
