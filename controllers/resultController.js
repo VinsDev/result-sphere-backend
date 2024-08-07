@@ -457,7 +457,7 @@ exports.generateStudentResultPDF = async (req, res) => {
 
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=Results_${student.full_name}.pdf`);
+        res.setHeader('Content-Disposition', `attachment; filename=Result_${student.full_name}.pdf`);
 
         // Pipe the PDF document to the response
         pdfDoc.pipe(res);
@@ -536,14 +536,14 @@ exports.generateMasterScoreSheet = async (req, res) => {
             // Add subject scores
             allSubjects.forEach(subject => {
                 const result = enrollment.Student.Results.find(r => r.Subject.subject_name === subject);
-                row.push({ text: result ? result.total_score.toString() : '-', alignment: 'center' });
+                row.push({ text: result ? result.total_score : '-', alignment: 'center' });
             });
 
             // Add total score, average, and position
             row.push(
-                { text: enrollment.total ? enrollment.total.toString() : '-', alignment: 'center' },
-                { text: enrollment.average ? enrollment.average.toFixed(2) : '-', alignment: 'center' },
-                { text: enrollment.position ? enrollment.position.toString() : '-', alignment: 'center' }
+                { text: enrollment.total ? enrollment.total : '-', alignment: 'center' },
+                { text: enrollment.average ? enrollment.average : '-', alignment: 'center' },
+                { text: enrollment.position ? enrollment.position : '-', alignment: 'center' }
             );
 
             return row;
@@ -582,7 +582,7 @@ exports.generateMasterScoreSheet = async (req, res) => {
             },
             defaultStyle: { fontSize: 7, font: 'Roboto' },
             footer: function (currentPage, pageCount) {
-                return { text: currentPage.toString() + ' of ' + pageCount, alignment: 'center' };
+                return { text: currentPage + ' of ' + pageCount, alignment: 'center' };
             }
         };
 
