@@ -2,11 +2,8 @@ const { Student, Subject, AssessmentScore, Result, Class, Assessment, GradeRule,
 const { Op } = require('sequelize');
 const { getCurrentTermBySchoolId } = require('./termController');
 const { getCurrentSessionBySchoolId } = require('./sessionController');
-const PDFMake = require('pdfmake');
 var PdfPrinter = require('pdfmake');
 var Roboto = require('../fonts/Roboto');
-const fs = require('fs');
-
 
 // Get all results
 exports.getAllResults = async (req, res, next) => {
@@ -303,6 +300,12 @@ exports.generateStudentResultPDF = async (req, res) => {
             where: { student_id: student_id, class_id: class_id, session_id: session_id, term_id: term_id }
         });
         const schoolInfo = await School.findByPk(enrollment.school_id);
+
+        const assessments = await Assessment.findAll({
+            where: { school_id: enrollment.school_id },
+            order: [['assessment_id', 'ASC']]
+        });
+
         const results = await Result.findAll({
             where: { student_id: student_id, class_id: class_id, session_id: session_id, term_id: term_id },
             include: [
@@ -314,25 +317,12 @@ exports.generateStudentResultPDF = async (req, res) => {
         const sessionInfo = await AcademicSession.findByPk(session_id);
         const termInfo = await Term.findByPk(term_id);
 
-        // Helper functions (implement these based on your grading system)
-        const position_qualifier = (position) => {
-            // Implement position qualification logic
-        };
-
-        const gradeHelper = (score) => {
-            // Implement grade calculation logic
-        };
-
-        const htremarkHelper = (average) => {
-            // Implement principal's remark logic
-        };
-
         // Prepare table data
         let tableItems = [
             [
                 { rowSpan: 2, text: 'Subjects', alignment: 'center', style: 'tableHeader' },
-                { text: 'C. Assessments', style: 'tableHeader', colSpan: 4, alignment: 'center' },
-                {}, {}, {},
+                { text: 'C. Assessments', style: 'tableHeader', colSpan: assessments.length, alignment: 'center' },
+                ...Array(assessments.length - 1).fill({}),
                 { text: 'Total', style: 'tableHeader', alignment: 'center' },
                 { text: 'Average', style: 'tableHeader', alignment: 'center' },
                 { text: 'Highest', style: 'tableHeader', alignment: 'center' },
@@ -342,31 +332,34 @@ exports.generateStudentResultPDF = async (req, res) => {
             ],
             [
                 '',
-                { text: '1ST\nC.A', style: 'tableHeader', alignment: 'center' },
-                { text: '2ND\nC.A', style: 'tableHeader', alignment: 'center' },
-                { text: '3RD\nC.A', style: 'tableHeader', alignment: 'center' },
-                { text: 'EXAMS', style: 'tableHeader', alignment: 'center' },
+                ...assessments.map(assessment => ({ text: assessment.assessment_name, style: 'tableHeader', alignment: 'center' })),
                 '', '', '', '', '', ''
             ],
         ];
-        try {
-            results.forEach(result => {
-                tableItems.push([
-                    { text: result.Subject.subject_name, style: 'tableHeader' },
-                    ...result.AssessmentScores.map(score => ({ text: score.score, style: 'tableHeader', alignment: 'center' })),
-                    { text: result.total_score, style: 'tableHeader', alignment: 'center' },
-                    // { text: result.average, style: 'tableHeader', alignment: 'center' },
-                    { text: '', style: 'tableHeader', alignment: 'center' },
-                    { text: result.highest_score, style: 'tableHeader', alignment: 'center' },
-                    { text: result.lowest_score, style: 'tableHeader', alignment: 'center' },
-                    { text: result.position, style: 'tableHeader', alignment: 'center' },
-                    { text: result.grade, style: 'tableHeader', alignment: 'center' }
-                ]);
+
+        results.forEach(result => {
+            let row = [
+                { text: result.Subject.subject_name ?? '-', style: 'tableHeader' },
+            ];
+
+            // Add scores for each assessment
+            assessments.forEach(assessment => {
+                const score = result.AssessmentScores.find(s => s.Assessment.assessment_id === assessment.assessment_id);
+                row.push({ text: score ? score.score : '-', style: 'tableHeader', alignment: 'center' });
             });
-        } catch (error) {
-            console.error('Error generating table:', error);
-            console.error('Problematic result:', JSON.stringify(result, null, 2));
-        }
+
+            // Add the rest of the columns
+            row.push(
+                { text: result.total_score ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.average ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.highest_score ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.lowest_score ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.position ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.grade ?? '-', style: 'tableHeader', alignment: 'center' }
+            );
+
+            tableItems.push(row);
+        });
 
         // Prepare document definition
         const docDefinition = {
@@ -413,7 +406,11 @@ exports.generateStudentResultPDF = async (req, res) => {
                 {
                     style: 'tableExample',
                     table: {
-                        widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+                        widths: [
+                            '*',
+                            ...Array(assessments.length).fill('auto'),
+                            'auto', 'auto', 'auto', 'auto', 'auto', 'auto'
+                        ],
                         body: tableItems
                     }
                 },
@@ -427,12 +424,12 @@ exports.generateStudentResultPDF = async (req, res) => {
                 {
                     columns: [
                         { width: '*', text: `CLASS AVERAGE: ${enrollment.class_average}`, style: 'bottom' },
-                        { width: '*', text: `POSITION IN CLASS: ${position_qualifier(enrollment.position)}`, style: 'bottom' },
+                        { width: '*', text: `POSITION IN CLASS: ${enrollment.position}`, style: 'bottom' },
                         { width: 'auto', text: `OUT OF CLASS: ${enrollment.class_size}`, style: 'bottom' },
                     ]
                 },
                 {
-                    text: `PRINCIPAL'S REMARKS: ${htremarkHelper(enrollment.average)}`,
+                    text: `PRINCIPAL'S REMARKS: ${enrollment.average ?? '-'}`,
                     style: 'bottom',
                 },
                 {
