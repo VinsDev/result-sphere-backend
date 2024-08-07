@@ -143,9 +143,9 @@ exports.createSchool = async (req, res, next) => {
         // Create usage statistics for the new school
         await UsageStatistics.create({
             school_id: school.school_id,
-            units_purchased: 0,  // Set initial values as needed
-            units_left: 0,
-            plan: null,  // Or set a default plan if applicable
+            units_purchased: 0,
+            units_left: 10,
+            plan: null,
             status: false,
         });
 
