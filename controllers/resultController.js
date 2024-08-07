@@ -349,20 +349,24 @@ exports.generateStudentResultPDF = async (req, res) => {
                 '', '', '', '', '', ''
             ],
         ];
-
-        results.forEach(result => {
-            tableItems.push([
-                { text: result.Subject.subject_name, style: 'tableHeader' },
-                ...result.AssessmentScores.map(score => ({ text: score.score, style: 'tableHeader', alignment: 'center' })),
-                { text: result.total_score, style: 'tableHeader', alignment: 'center' },
-                // { text: result.average, style: 'tableHeader', alignment: 'center' },
-                { text: '', style: 'tableHeader', alignment: 'center' },
-                { text: result.highest_score, style: 'tableHeader', alignment: 'center' },
-                { text: result.lowest_score, style: 'tableHeader', alignment: 'center' },
-                { text: result.position, style: 'tableHeader', alignment: 'center' },
-                { text: result.grade, style: 'tableHeader', alignment: 'center' }
-            ]);
-        });
+        try {
+            results.forEach(result => {
+                tableItems.push([
+                    { text: result.Subject.subject_name, style: 'tableHeader' },
+                    ...result.AssessmentScores.map(score => ({ text: score.score, style: 'tableHeader', alignment: 'center' })),
+                    { text: result.total_score, style: 'tableHeader', alignment: 'center' },
+                    // { text: result.average, style: 'tableHeader', alignment: 'center' },
+                    { text: '', style: 'tableHeader', alignment: 'center' },
+                    { text: result.highest_score, style: 'tableHeader', alignment: 'center' },
+                    { text: result.lowest_score, style: 'tableHeader', alignment: 'center' },
+                    { text: result.position, style: 'tableHeader', alignment: 'center' },
+                    { text: result.grade, style: 'tableHeader', alignment: 'center' }
+                ]);
+            });
+        } catch (error) {
+            console.error('Error generating table:', error);
+            console.error('Problematic result:', JSON.stringify(result, null, 2));
+        }
 
         // Prepare document definition
         const docDefinition = {
