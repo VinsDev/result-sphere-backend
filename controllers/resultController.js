@@ -478,6 +478,10 @@ exports.generateMasterScoreSheet = async (req, res) => {
         const sessionInfo = await AcademicSession.findByPk(session_id);
         const termInfo = await Term.findByPk(term_id);
 
+        if (!classInfo || !sessionInfo || !termInfo) {
+            throw new Error('Required information not found');
+        }
+
         // Fetch all students in the class for this term and session
         const enrollments = await StudentEnrollment.findAll({
             where: { class_id, session_id, term_id },
@@ -501,6 +505,10 @@ exports.generateMasterScoreSheet = async (req, res) => {
             order: [['position', 'ASC']]
         });
 
+        if (enrollments.length === 0) {
+            throw new Error('No enrollments found for the specified class, session, and term');
+        }
+
         // Get all unique subjects
         const allSubjects = [...new Set(enrollments.flatMap(enrollment =>
             enrollment.Student.Results.map(result => result.Subject.subject_name)
@@ -509,12 +517,12 @@ exports.generateMasterScoreSheet = async (req, res) => {
         // Prepare table headers
         const tableHeaders = [
             [
-                { text: 'S/N', style: 'tableHeader', alignment: 'center', width: 20 },
-                { text: 'Student Name', style: 'tableHeader', alignment: 'center', width: 'auto' },
-                ...allSubjects.map(subject => ({ text: subject, style: 'tableHeader', alignment: 'center', width: 35 })),
-                { text: 'Total', style: 'tableHeader', alignment: 'center', width: 35 },
-                { text: 'Avg', style: 'tableHeader', alignment: 'center', width: 35 },
-                { text: 'Pos', style: 'tableHeader', alignment: 'center', width: 35 }
+                { text: 'S/N', style: 'tableHeader', alignment: 'center' },
+                { text: 'Student Name', style: 'tableHeader', alignment: 'center' },
+                ...allSubjects.map(subject => ({ text: subject, style: 'tableHeader', alignment: 'center' })),
+                { text: 'Total', style: 'tableHeader', alignment: 'center' },
+                { text: 'Avg', style: 'tableHeader', alignment: 'center' },
+                { text: 'Pos', style: 'tableHeader', alignment: 'center' }
             ]
         ];
 
@@ -528,14 +536,14 @@ exports.generateMasterScoreSheet = async (req, res) => {
             // Add subject scores
             allSubjects.forEach(subject => {
                 const result = enrollment.Student.Results.find(r => r.Subject.subject_name === subject);
-                row.push({ text: result ? result.total_score : '-', alignment: 'center' });
+                row.push({ text: result ? result.total_score.toString() : '-', alignment: 'center' });
             });
 
             // Add total score, average, and position
             row.push(
-                { text: enrollment.total || '-', alignment: 'center' },
-                { text: enrollment.average ? enrollment.average : '-', alignment: 'center' },
-                { text: enrollment.position ? enrollment.position : '-', alignment: 'center' }
+                { text: enrollment.total ? enrollment.total.toString() : '-', alignment: 'center' },
+                { text: enrollment.average ? enrollment.average.toFixed(2) : '-', alignment: 'center' },
+                { text: enrollment.position ? enrollment.position.toString() : '-', alignment: 'center' }
             );
 
             return row;
@@ -543,6 +551,9 @@ exports.generateMasterScoreSheet = async (req, res) => {
 
         // Combine headers and body
         const tableItems = [...tableHeaders, ...tableBody];
+
+        // Calculate dynamic column widths
+        const columnWidths = ['auto', 'auto', ...Array(allSubjects.length).fill('auto'), 'auto', 'auto', 'auto'];
 
         // Create document definition
         const docDefinition = {
@@ -557,7 +568,7 @@ exports.generateMasterScoreSheet = async (req, res) => {
                     style: 'tableExample',
                     table: {
                         headerRows: 1,
-                        widths: ['auto', 'auto', ...Array(allSubjects.length).fill(35), 35, 35, 35],
+                        widths: columnWidths,
                         body: tableItems
                     },
                     layout: 'lightHorizontalLines'
@@ -569,7 +580,10 @@ exports.generateMasterScoreSheet = async (req, res) => {
                 tableExample: { margin: [0, 5, 0, 10] },
                 tableHeader: { bold: true, fontSize: 8, color: 'black' }
             },
-            defaultStyle: { fontSize: 7, font: 'Roboto' }
+            defaultStyle: { fontSize: 7, font: 'Roboto' },
+            footer: function (currentPage, pageCount) {
+                return { text: currentPage.toString() + ' of ' + pageCount, alignment: 'center' };
+            }
         };
 
         // Generate PDF
@@ -583,6 +597,7 @@ exports.generateMasterScoreSheet = async (req, res) => {
         // Pipe the PDF document to the response
         pdfDoc.pipe(res);
         pdfDoc.end();
+
     } catch (error) {
         console.error('Error generating master score sheet:', error);
         res.status(500).json({ message: 'Error generating master score sheet', error: error.message });
