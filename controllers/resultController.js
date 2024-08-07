@@ -329,8 +329,25 @@ exports.generateStudentResultPDF = async (req, res) => {
 
         // Prepare table data
         let tableItems = [
-            [{ rowSpan: 2, text: 'Subjects', alignment: 'center', style: 'tableHeader' }, { text: 'C. Assessments', style: 'tableHeader', colSpan: 4, alignment: 'center' }, {}, {}, {}, { text: 'Total', style: 'tableHeader', alignment: 'center' }, { text: 'Average', style: 'tableHeader', alignment: 'center' }, { text: 'Highest', style: 'tableHeader', alignment: 'center' }, { text: 'Lowest', style: 'tableHeader', alignment: 'center' }, { text: 'Rank', style: 'tableHeader', alignment: 'center' }, { text: 'Grade', style: 'tableHeader', alignment: 'center' }],
-            ['', { text: '1ST\nC.A', style: 'tableHeader', alignment: 'center' }, { text: '2ND\nC.A', style: 'tableHeader', alignment: 'center' }, { text: '3RD\nC.A', style: 'tableHeader', alignment: 'center' }, { text: 'EXAMS', style: 'tableHeader', alignment: 'center' }, '', '', '', '', '', ''],
+            [
+                { rowSpan: 2, text: 'Subjects', alignment: 'center', style: 'tableHeader' },
+                { text: 'C. Assessments', style: 'tableHeader', colSpan: 4, alignment: 'center' },
+                {}, {}, {},
+                { text: 'Total', style: 'tableHeader', alignment: 'center' },
+                { text: 'Average', style: 'tableHeader', alignment: 'center' },
+                { text: 'Highest', style: 'tableHeader', alignment: 'center' },
+                { text: 'Lowest', style: 'tableHeader', alignment: 'center' },
+                { text: 'Rank', style: 'tableHeader', alignment: 'center' },
+                { text: 'Grade', style: 'tableHeader', alignment: 'center' }
+            ],
+            [
+                '',
+                { text: '1ST\nC.A', style: 'tableHeader', alignment: 'center' },
+                { text: '2ND\nC.A', style: 'tableHeader', alignment: 'center' },
+                { text: '3RD\nC.A', style: 'tableHeader', alignment: 'center' },
+                { text: 'EXAMS', style: 'tableHeader', alignment: 'center' },
+                '', '', '', '', '', ''
+            ],
         ];
 
         results.forEach(result => {
@@ -338,7 +355,8 @@ exports.generateStudentResultPDF = async (req, res) => {
                 { text: result.Subject.subject_name, style: 'tableHeader' },
                 ...result.AssessmentScores.map(score => ({ text: score.score, style: 'tableHeader', alignment: 'center' })),
                 { text: result.total_score, style: 'tableHeader', alignment: 'center' },
-                { text: result.average, style: 'tableHeader', alignment: 'center' },
+                // { text: result.average, style: 'tableHeader', alignment: 'center' },
+                { text: '', style: 'tableHeader', alignment: 'center' },
                 { text: result.highest_score, style: 'tableHeader', alignment: 'center' },
                 { text: result.lowest_score, style: 'tableHeader', alignment: 'center' },
                 { text: result.position, style: 'tableHeader', alignment: 'center' },
