@@ -15,40 +15,22 @@ async function initializeDatabase(req, res) {
 
   try {
     // Drop existing tables
-    // const dropTables = `
-    //   DROP TABLE IF EXISTS "AssessmentScores";
-    //   DROP TABLE IF EXISTS "Assessments";
-    //   DROP TABLE IF EXISTS "GradeRules";
-    //   DROP TABLE IF EXISTS "Results";
-    //   DROP TABLE IF EXISTS "StudentEnrollments";
-    //   DROP TABLE IF EXISTS "Students";
-    //   DROP TABLE IF EXISTS "TeacherSubjects";
-    //   DROP TABLE IF EXISTS "Teachers";
-    //   DROP TABLE IF EXISTS "Subjects";
-    //   DROP TABLE IF EXISTS "Classes";
-    //   DROP TABLE IF EXISTS "ResultReleases";
-    //   DROP TABLE IF EXISTS "Terms";
-    //   DROP TABLE IF EXISTS "AcademicSessions";
-    //   DROP TABLE IF EXISTS "UsageStatistics";
-    //   DROP TABLE IF EXISTS "Schools";
-    // `;
-
     const dropTables = `
-      DROP TABLE IF EXISTS "assessmentscores";
-      DROP TABLE IF EXISTS "assessments";
-      DROP TABLE IF EXISTS "graderules";
-      DROP TABLE IF EXISTS "results";
-      DROP TABLE IF EXISTS "studentenrollments";
-      DROP TABLE IF EXISTS "students";
-      DROP TABLE IF EXISTS "teachersubjects";
-      DROP TABLE IF EXISTS "teachers";
-      DROP TABLE IF EXISTS "subjects";
-      DROP TABLE IF EXISTS "classes";
-      DROP TABLE IF EXISTS "resultreleases";
-      DROP TABLE IF EXISTS "terms";
-      DROP TABLE IF EXISTS "academicsessions";
-      DROP TABLE IF EXISTS "usagestatistics";
-      DROP TABLE IF EXISTS "schools";
+      DROP TABLE IF EXISTS "AssessmentScores";
+      DROP TABLE IF EXISTS "Assessments";
+      DROP TABLE IF EXISTS "GradeRules";
+      DROP TABLE IF EXISTS "Results";
+      DROP TABLE IF EXISTS "StudentEnrollments";
+      DROP TABLE IF EXISTS "Students";
+      DROP TABLE IF EXISTS "TeacherSubjects";
+      DROP TABLE IF EXISTS "Teachers";
+      DROP TABLE IF EXISTS "Subjects";
+      DROP TABLE IF EXISTS "Classes";
+      DROP TABLE IF EXISTS "ResultReleases";
+      DROP TABLE IF EXISTS "Terms";
+      DROP TABLE IF EXISTS "AcademicSessions";
+      DROP TABLE IF EXISTS "UsageStatistics";
+      DROP TABLE IF EXISTS "Schools";
     `;
 
     // Create tables

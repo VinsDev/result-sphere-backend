@@ -228,7 +228,7 @@ exports.createSchool = async (req, res, next) => {
         ];
         await GradeRule.bulkCreate(gradeRules);
 
-        await sendSubscriptionEmail(school.email, school.name, school.phone_number, school.password);
+        await sendSubscriptionEmail(school.school_id, school.email, school.name, school.phone_number, school.password);
 
         res.status(201).json(school);
     } catch (error) {
