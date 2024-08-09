@@ -3,10 +3,11 @@ const router = express.Router();
 const schoolController = require('../controllers/schoolController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = require('../config/multer-config');
 
 // Define routes for Schools
 router.post('/login', schoolController.loginSchool);
+router.get('/check-email', schoolController.checkEmailSchoolAssociation);
 router.get('/search', schoolController.searchSchools);
 router.get('/fetch-all', schoolController.getAllSchools);
 router.get('/setup-status', authMiddleware, schoolController.setupStatus);

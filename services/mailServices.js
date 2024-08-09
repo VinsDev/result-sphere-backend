@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-
+const path = require('path');
 exports.sendSubscriptionEmail = async (id, email, name, phone, password) => {
 
   const transporter = nodemailer.createTransport({

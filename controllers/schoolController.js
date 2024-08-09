@@ -12,9 +12,13 @@ const { sendSubscriptionEmail } = require('../services/mailServices');
 const UsageStatistics = require('../models/UsageStatistics');
 const { AcademicSession, Class, Subject } = require('../models');
 const { Op } = require('sequelize');
+const cloudinary = require('cloudinary').v2;
 
-
-const { uploadImageToFirebase } = require('../services/uploadImageToFirebase');
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 exports.checkToken = (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -50,6 +54,32 @@ exports.getAllSchools = async (req, res, next) => {
     const schools = await School.findAll();
     res.json(schools);
 };
+
+exports.checkEmailSchoolAssociation = async (req, res, next) => {
+    try {
+        // Get the email from the query parameters
+        const { email } = req.query;
+
+        // Validate email format
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+
+        // Query to check if the email is associated with a school
+        const school = await School.findOne({ where: { email } });
+
+        // Respond with the result
+        if (school) {
+            res.json({ exists: true, school: school.name });
+        } else {
+            res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Error checking email association:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 
 exports.searchSchools = async (req, res, next) => {
     try {
@@ -159,18 +189,26 @@ exports.createSchool = async (req, res, next) => {
         deputy1, deputy2, anthem, about, vision
     } = req.body;
 
-    let deputy2ImageUrl = null;
     try {
-        // Upload the images to Firebase Storage
-        const headImageUrl = await uploadImageToFirebase(req.files.head_image[0], 'head-image');
-        const deputy1ImageUrl = await uploadImageToFirebase(req.files.deputy_1_image[0], 'deputy1-image');
-        if (req.files.deputy_2_image && req.files.deputy_2_image[0]) {
-            deputy2ImageUrl = await uploadImageToFirebase(req.files.deputy_2_image[0], 'deputy2-image');
-        }
-        const logoUrl = await uploadImageToFirebase(req.files.logo[0], 'logo');
-        const schoolImageUrl = await uploadImageToFirebase(req.files.school_image[0], 'school-image');
+        const uploadFile = async (file, folder) => {
+            if (file) {
+                try {
+                    const result = await cloudinary.uploader.upload(file.path, { folder });
+                    return result.secure_url;
+                } catch (error) {
+                    console.error(`Error uploading to ${folder}:`, error);
+                    throw error;
+                }
+            }
+            return null;
+        };
 
-        // Create the school
+        const headImageUrl = await uploadFile(req.files.head_image?.[0], 'head-image');
+        const deputy1ImageUrl = await uploadFile(req.files.deputy_1_image?.[0], 'deputy1-image');
+        const deputy2ImageUrl = await uploadFile(req.files.deputy_2_image?.[0], 'deputy2-image');
+        const logoUrl = await uploadFile(req.files.logo?.[0], 'logo');
+        const schoolImageUrl = await uploadFile(req.files.school_image?.[0], 'school-image');
+
         const school = await School.create({
             name,
             email,
