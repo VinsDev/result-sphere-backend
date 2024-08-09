@@ -1,16 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const schoolController = require('../controllers/schoolController');
-const authMiddleware = require('../middlewares/authMiddleware')
+const authMiddleware = require('../middlewares/authMiddleware');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Define routes for Schools
 router.post('/login', schoolController.loginSchool);
+router.get('/search', schoolController.searchSchools);
 router.get('/fetch-all', schoolController.getAllSchools);
 router.get('/setup-status', authMiddleware, schoolController.setupStatus);
 router.get('/show-position', authMiddleware, schoolController.getShowPosition);
 router.get('/stats', authMiddleware, schoolController.getSchoolStats);
 router.get('/this', authMiddleware, schoolController.getSchool);
-router.post('/', schoolController.createSchool);
+router.get('/:school_id', schoolController.getSchoolById);
+router.post('/', upload.fields([
+    { name: 'head_image', maxCount: 1 },
+    { name: 'deputy_1_image', maxCount: 1 },
+    { name: 'deputy_2_image', maxCount: 1 },
+    { name: 'logo', maxCount: 1 },
+    { name: 'school_image', maxCount: 1 },
+]), schoolController.createSchool);
 router.put('/show-position', authMiddleware, schoolController.updateShowPosition);
 router.put('/this', authMiddleware, schoolController.updateSchool);
 router.delete('/:id', schoolController.deleteSchool);

@@ -73,8 +73,16 @@ const School = sequelize.define('School', {
     allowNull: false,
     defaultValue: false,
   },
+  logo: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  school_image: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
-  tableName: 'Schools'.toLowerCase(),
+  tableName: 'Schools',
   timestamps: false,
 });
 

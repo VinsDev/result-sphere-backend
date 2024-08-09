@@ -52,7 +52,7 @@ const TeacherSubject = sequelize.define('TeacherSubject', {
     },
   },
 }, {
-  tableName: 'TeacherSubjects'.toLowerCase(),
+  tableName: 'TeacherSubjects',
   timestamps: false,
 });
 

@@ -8,6 +8,24 @@ async function createTables() {
     database: 'ResultSphere'
   });
 
+  const dropTables = `
+    DROP TABLE IF EXISTS AssessmentScores;
+    DROP TABLE IF EXISTS Assessments;
+    DROP TABLE IF EXISTS GradeRules;
+    DROP TABLE IF EXISTS Results;
+    DROP TABLE IF EXISTS StudentEnrollments;
+    DROP TABLE IF EXISTS Students;
+    DROP TABLE IF EXISTS TeacherSubjects;
+    DROP TABLE IF EXISTS Teachers;
+    DROP TABLE IF EXISTS Subjects;
+    DROP TABLE IF EXISTS Classes;
+    DROP TABLE IF EXISTS ResultReleases;
+    DROP TABLE IF EXISTS Terms;
+    DROP TABLE IF EXISTS AcademicSessions;
+    DROP TABLE IF EXISTS UsageStatistics;
+    DROP TABLE IF EXISTS Schools;
+  `;
+
   const createSchoolTable = `
     CREATE TABLE IF NOT EXISTS Schools (
       school_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -26,7 +44,9 @@ async function createTables() {
       anthem TEXT NOT NULL,
       about TEXT NOT NULL,
       vision TEXT NOT NULL,
-      show_position BOOLEAN NOT NULL DEFAULT false
+      show_position BOOLEAN NOT NULL DEFAULT false,
+      logo VARCHAR(255),
+      school_image VARCHAR(255)
     );
   `;
 
@@ -217,6 +237,7 @@ async function createTables() {
   `;
 
   const queries = [
+    dropTables,
     createSchoolTable,
     createUsageStatisticsTable,
     createAcademicSessionsTable,

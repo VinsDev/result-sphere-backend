@@ -28,7 +28,7 @@ const AssessmentScore = sequelize.define('AssessmentScore', {
     allowNull: false,
   },
 }, {
-  tableName: 'AssessmentScores'.toLowerCase(),
+  tableName: 'AssessmentScores',
   timestamps: false,
 });
 

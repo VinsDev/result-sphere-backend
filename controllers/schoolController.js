@@ -11,6 +11,10 @@ const SessionController = require('./sessionController');
 const { sendSubscriptionEmail } = require('../services/mailServices');
 const UsageStatistics = require('../models/UsageStatistics');
 const { AcademicSession, Class, Subject } = require('../models');
+const { Op } = require('sequelize');
+
+
+const { uploadImageToFirebase } = require('../services/uploadImageToFirebase');
 
 exports.checkToken = (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -47,6 +51,32 @@ exports.getAllSchools = async (req, res, next) => {
     res.json(schools);
 };
 
+exports.searchSchools = async (req, res, next) => {
+    try {
+        const { q } = req.query; // Get the 'q' query parameter from the request
+        let schools;
+
+        if (q) {
+            // If 'q' is provided, find schools with matching names
+            schools = await School.findAll({
+                where: {
+                    name: {
+                        [Op.like]: `%${q}%` // Use LIKE operator for partial matching
+                    }
+                }
+            });
+        } else {
+            // If no 'q' is provided, return all schools
+            schools = await School.findAll();
+        }
+        res.json(schools);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'An error occurred while fetching schools.' });
+    }
+};
+
+
 exports.getSchoolStats = async (req, res) => {
     const schoolId = req.user.school_id;
 
@@ -70,6 +100,15 @@ exports.getSchoolStats = async (req, res) => {
 exports.getSchool = async (req, res, next) => {
     const schoolId = req.user.school_id;
     const school = await School.findByPk(schoolId);
+    if (!school) {
+        return next(new Error('School not found'));
+    }
+    res.json(school);
+};
+
+exports.getSchoolById = async (req, res, next) => {
+    const { school_id } = req.params;
+    const school = await School.findByPk(school_id);
     if (!school) {
         return next(new Error('School not found'));
     }
@@ -116,11 +155,21 @@ exports.updateShowPosition = async (req, res, next) => {
 
 exports.createSchool = async (req, res, next) => {
     const {
-        name, email, phone_number, password, address, category, head, head_image,
-        deputy1, deputy1_image, deputy2, deputy2_image, anthem, about, vision
+        name, email, phone_number, password, address, category, head,
+        deputy1, deputy2, anthem, about, vision
     } = req.body;
 
+    let deputy2ImageUrl = null;
     try {
+        // Upload the images to Firebase Storage
+        const headImageUrl = await uploadImageToFirebase(req.files.head_image[0], 'head-image');
+        const deputy1ImageUrl = await uploadImageToFirebase(req.files.deputy_1_image[0], 'deputy1-image');
+        if (req.files.deputy_2_image && req.files.deputy_2_image[0]) {
+            deputy2ImageUrl = await uploadImageToFirebase(req.files.deputy_2_image[0], 'deputy2-image');
+        }
+        const logoUrl = await uploadImageToFirebase(req.files.logo[0], 'logo');
+        const schoolImageUrl = await uploadImageToFirebase(req.files.school_image[0], 'school-image');
+
         // Create the school
         const school = await School.create({
             name,
@@ -130,22 +179,24 @@ exports.createSchool = async (req, res, next) => {
             address,
             category,
             head,
-            head_image,
+            head_image: headImageUrl,
             deputy1,
-            deputy1_image,
+            deputy1_image: deputy1ImageUrl,
             deputy2,
-            deputy2_image,
+            deputy2_image: deputy2ImageUrl,
             anthem,
             about,
-            vision
+            vision,
+            school_image: schoolImageUrl,
+            logo: logoUrl
         });
 
         // Create usage statistics for the new school
         await UsageStatistics.create({
             school_id: school.school_id,
             units_purchased: 0,
-            units_left: 10,
-            plan: null,
+            units_left: 500,
+            plan: 'Starter',
             status: false,
         });
 
@@ -177,7 +228,7 @@ exports.createSchool = async (req, res, next) => {
         ];
         await GradeRule.bulkCreate(gradeRules);
 
-        await sendSubscriptionEmail(school.email, school.name, school.phone_number);
+        await sendSubscriptionEmail(school.email, school.name, school.phone_number, school.password);
 
         res.status(201).json(school);
     } catch (error) {

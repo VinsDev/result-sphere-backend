@@ -35,7 +35,7 @@ const UsageStatistics = sequelize.define('UsageStatistics', {
     defaultValue: 0,
   },
 }, {
-  tableName: 'UsageStatistics'.toLowerCase(),
+  tableName: 'UsageStatistics',
   timestamps: false,
 });
 

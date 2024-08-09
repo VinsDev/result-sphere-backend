@@ -32,7 +32,7 @@ const GradeRule = sequelize.define('GradeRule', {
         allowNull: true
     }
 }, {
-    tableName: 'GradeRules'.toLowerCase(),
+    tableName: 'GradeRules',
     timestamps: false
 });
 

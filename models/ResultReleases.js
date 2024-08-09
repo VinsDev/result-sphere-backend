@@ -39,7 +39,7 @@ const ResultRelease = sequelize.define('ResultRelease', {
     defaultValue: false,
   },
 }, {
-  tableName: 'ResultReleases'.toLowerCase(),
+  tableName: 'ResultReleases',
   timestamps: false,
 });
 

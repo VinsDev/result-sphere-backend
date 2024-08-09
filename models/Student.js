@@ -29,7 +29,7 @@ const Student = sequelize.define('Student', {
     allowNull: false,
   },
 }, {
-  tableName: 'Students'.toLowerCase(),
+  tableName: 'Students',
   timestamps: false,
 });
 

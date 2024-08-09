@@ -69,7 +69,7 @@ const StudentEnrollment = sequelize.define('StudentEnrollment', {
     allowNull: true,
   },
 }, {
-  tableName: 'StudentEnrollments'.toLowerCase(),
+  tableName: 'StudentEnrollments',
   timestamps: false,
 });
 

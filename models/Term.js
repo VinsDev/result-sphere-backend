@@ -32,7 +32,7 @@ const Term = sequelize.define('Term', {
     defaultValue: false,
   },
 }, {
-  tableName: 'Terms'.toLowerCase(),
+  tableName: 'Terms',
   timestamps: false,
 });
 
