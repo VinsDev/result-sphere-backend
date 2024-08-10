@@ -12,6 +12,7 @@ const { sendSubscriptionEmail } = require('../services/mailServices');
 const UsageStatistics = require('../models/UsageStatistics');
 const { AcademicSession, Class, Subject } = require('../models');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -271,6 +272,64 @@ exports.createSchool = async (req, res, next) => {
         res.status(201).json(school);
     } catch (error) {
         console.log(error)
+        next(error);
+    }
+};
+
+exports.purchaseUnits = async (req, res, next) => {
+    const { units, cost, plan, paymentReference } = req.body;
+    const schoolId = req.user.school_id; // Assuming you have middleware that sets the user
+
+    try {
+        // Start a transaction
+        const transaction = await sequelize.transaction();
+
+        try {
+            // Fetch the current usage statistics
+            const usageStats = await UsageStatistics.findOne({
+                where: { school_id: schoolId }
+            }, { transaction });
+
+            if (!usageStats) {
+                throw new Error('Usage statistics not found for this school');
+            }
+
+            // Update the usage statistics
+            const updatedUnits = usageStats.units_left + units;
+            await usageStats.update({
+                units_purchased: usageStats.units_purchased + units,
+                units_left: updatedUnits,
+                plan: plan,
+                status: true, // Assuming the purchase activates the account
+            }, { transaction });
+
+            // Create a purchase record
+            // const purchase = await Purchase.create({
+            //     school_id: schoolId,
+            //     units: units,
+            //     cost: cost,
+            //     payment_reference: paymentReference,
+            //     purchase_date: new Date()
+            // }, { transaction });
+
+            // If everything is successful, commit the transaction
+            await transaction.commit();
+
+            // Send a confirmation email
+            // await sendPurchaseConfirmationEmail(schoolId, units, cost, plan);
+
+            res.status(200).json({
+                message: 'Units purchased successfully',
+                purchase: purchase,
+                newTotalUnits: updatedUnits
+            });
+        } catch (error) {
+            // If there's an error, roll back the transaction
+            await transaction.rollback();
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error in purchaseUnits:', error);
         next(error);
     }
 };

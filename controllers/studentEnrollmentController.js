@@ -1,6 +1,7 @@
 const Student = require('../models/Student');
 const StudentEnrollment = require('../models/StudentEnrollment');
 const { Op } = require('sequelize');
+const UsageStatistics = require('../models/UsageStatistics');
 
 // Get all student classes
 exports.getAllStudentEnrollments = async (req, res, next) => {
@@ -65,6 +66,10 @@ exports.importStudentEnrollments = async (req, res) => {
         // Filter out students who are already enrolled
         const alreadyEnrolledStudentIds = existingEnrollments.map(enrollment => enrollment.student_id);
         const studentsToEnroll = studentIds.filter(id => !alreadyEnrolledStudentIds.includes(id));
+
+        let usageStatistics = await UsageStatistics.findOne({ where: { school_id: school_id } });
+        usageStatistics.units_left = usageStatistics.units_left - studentsToEnroll.length;
+        await usageStatistics.save();
 
         // Create new enrollments
         const newEnrollments = studentsToEnroll.map(student_id => ({
