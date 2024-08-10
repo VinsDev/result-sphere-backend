@@ -282,13 +282,12 @@ exports.purchaseUnits = async (req, res, next) => {
 
     try {
         // Start a transaction
-        const transaction = await sequelize.transaction();
 
         try {
             // Fetch the current usage statistics
             const usageStats = await UsageStatistics.findOne({
                 where: { school_id: schoolId }
-            }, { transaction });
+            });
 
             if (!usageStats) {
                 throw new Error('Usage statistics not found for this school');
@@ -301,31 +300,16 @@ exports.purchaseUnits = async (req, res, next) => {
                 units_left: updatedUnits,
                 plan: plan,
                 status: true, // Assuming the purchase activates the account
-            }, { transaction });
-
-            // Create a purchase record
-            // const purchase = await Purchase.create({
-            //     school_id: schoolId,
-            //     units: units,
-            //     cost: cost,
-            //     payment_reference: paymentReference,
-            //     purchase_date: new Date()
-            // }, { transaction });
+            });
 
             // If everything is successful, commit the transaction
-            await transaction.commit();
 
             // Send a confirmation email
             // await sendPurchaseConfirmationEmail(schoolId, units, cost, plan);
 
-            res.status(200).json({
-                message: 'Units purchased successfully',
-                purchase: purchase,
-                newTotalUnits: updatedUnits
-            });
+            res.status(200).json({ message: 'Units purchased successfully' });
         } catch (error) {
             // If there's an error, roll back the transaction
-            await transaction.rollback();
             throw error;
         }
     } catch (error) {
