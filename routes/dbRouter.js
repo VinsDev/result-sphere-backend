@@ -150,7 +150,7 @@ async function initializeDatabase(req, res) {
       "student_id" SERIAL PRIMARY KEY,
       "full_name" VARCHAR(255) NOT NULL,
       "admission_number" VARCHAR(255) NOT NULL UNIQUE,
-      "gender" ENUM('male', 'female', 'other') NOT NULL,
+      "gender" VARCHAR(255) NOT NULL,
       "date_of_birth" DATE NOT NULL,
       "pin" VARCHAR(255) NOT NULL,
       "image_url" VARCHAR(255),
