@@ -54,7 +54,8 @@ async function initializeDatabase(req, res) {
       "vision" TEXT NOT NULL,
       "show_position" BOOLEAN NOT NULL DEFAULT false,
       "logo" VARCHAR(255),
-      "school_image" VARCHAR(255)
+      "school_image" VARCHAR(255),
+      "school_stamp" VARCHAR(255)
     );
   `;
 
@@ -115,7 +116,8 @@ async function initializeDatabase(req, res) {
       "school_id" INTEGER REFERENCES "Schools"("school_id") ON DELETE CASCADE,
       "class_id" INTEGER REFERENCES "Classes"("class_id") ON DELETE CASCADE,
       "term_id" INTEGER REFERENCES "Terms"("term_id") ON DELETE CASCADE,
-      "subject_name" VARCHAR(255) NOT NULL
+      "subject_name" VARCHAR(255) NOT NULL,
+      "average" DECIMAL(10, 2) DEFAULT NULL
     );
   `;
 
@@ -148,6 +150,8 @@ async function initializeDatabase(req, res) {
       "student_id" SERIAL PRIMARY KEY,
       "full_name" VARCHAR(255) NOT NULL,
       "admission_number" VARCHAR(255) NOT NULL UNIQUE,
+      "gender" ENUM('male', 'female', 'other') NOT NULL,
+      "date_of_birth" DATE NOT NULL,
       "pin" VARCHAR(255) NOT NULL,
       "image_url" VARCHAR(255),
       "parents_contact_info" TEXT NOT NULL

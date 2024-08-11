@@ -81,6 +81,10 @@ const School = sequelize.define('School', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  school_stamp: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   tableName: 'Schools',
   timestamps: false,

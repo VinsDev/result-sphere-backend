@@ -302,8 +302,6 @@ exports.purchaseUnits = async (req, res, next) => {
                 status: true, // Assuming the purchase activates the account
             });
 
-            // If everything is successful, commit the transaction
-
             // Send a confirmation email
             // await sendPurchaseConfirmationEmail(schoolId, units, cost, plan);
 
@@ -375,21 +373,56 @@ exports.updateSchool = async (req, res, next) => {
             return res.status(400).json({ message: 'Required fields are missing' });
         }
 
+        const uploadFile = async (file, folder) => {
+            if (file) {
+                try {
+                    const result = await cloudinary.uploader.upload(file.path, { folder });
+                    return result.secure_url;
+                } catch (error) {
+                    console.error(`Error uploading to ${folder}:`, error);
+                    throw error;
+                }
+            }
+            return null;
+        };
+
+        const updateData = {
+            name,
+            email,
+            phone_number,
+            address,
+            about,
+            category,
+            head,
+            deputy1,
+            deputy2,
+            mission,
+            vision,
+            anthem
+        };
+
+        // Only update image fields if new files were uploaded
+        if (req.files.head_image?.[0]) {
+            updateData.head_image = await uploadFile(req.files.head_image[0], 'head-image');
+        }
+        if (req.files.deputy_1_image?.[0]) {
+            updateData.deputy1_image = await uploadFile(req.files.deputy_1_image[0], 'deputy1-image');
+        }
+        if (req.files.deputy_2_image?.[0]) {
+            updateData.deputy2_image = await uploadFile(req.files.deputy_2_image[0], 'deputy2-image');
+        }
+        if (req.files.logo?.[0]) {
+            updateData.logo = await uploadFile(req.files.logo[0], 'logo');
+        }
+        if (req.files.school_image?.[0]) {
+            updateData.school_image = await uploadFile(req.files.school_image[0], 'school-image');
+        }
+        if (req.files.school_stamp?.[0]) {
+            updateData.school_stamp = await uploadFile(req.files.school_stamp[0], 'school-stamp');
+        }
+
         const [affectedRows] = await School.update(
-            {
-                name,
-                email,
-                phone_number,
-                address,
-                about,
-                category,
-                head,
-                deputy1,
-                deputy2,
-                mission,
-                vision,
-                anthem
-            },
+            updateData,
             { where: { school_id: school_id } }
         );
 

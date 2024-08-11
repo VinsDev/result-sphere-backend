@@ -4,6 +4,11 @@ const { getCurrentTermBySchoolId } = require('./termController');
 const { getCurrentSessionBySchoolId } = require('./sessionController');
 var PdfPrinter = require('pdfmake');
 var Roboto = require('../fonts/Roboto');
+const axios = require('axios');
+const sharp = require('sharp');
+const fetch = require('node-fetch');
+const { htremarkHelper, position_qualifier } = require('../config/utility');
+
 
 // Get all results
 exports.getAllResults = async (req, res, next) => {
@@ -172,7 +177,8 @@ exports.computeResults = async (req, res, next) => {
                 subjectScores[subject.subject_id] = {
                     highestScore: -Infinity,
                     lowestScore: Infinity,
-                    totalScores: []
+                    totalScores: [],
+                    results: []
                 };
             });
 
@@ -209,6 +215,7 @@ exports.computeResults = async (req, res, next) => {
                     subjectScores[subject.subject_id].highestScore = Math.max(subjectScores[subject.subject_id].highestScore, subjectTotalScore);
                     subjectScores[subject.subject_id].lowestScore = Math.min(subjectScores[subject.subject_id].lowestScore, subjectTotalScore);
                     subjectScores[subject.subject_id].totalScores.push(subjectTotalScore);
+                    subjectScores[subject.subject_id].results.push({ result_id: result.result_id, total_score: subjectTotalScore });
 
                     // Determine grade for this subject
                     const { grade, comment } = determineGrade(subjectTotalScore);
@@ -243,12 +250,15 @@ exports.computeResults = async (req, res, next) => {
                 });
             }
 
-            // Update highest and lowest scores for each subject
+            // Update highest and lowest scores, compute positions and averages for each subject
             for (const subject of subjects) {
+                const subjectData = subjectScores[subject.subject_id];
+
+                // Update highest and lowest scores
                 await Result.update(
                     {
-                        highest_score: subjectScores[subject.subject_id].highestScore,
-                        lowest_score: subjectScores[subject.subject_id].lowestScore
+                        highest_score: subjectData.highestScore,
+                        lowest_score: subjectData.lowestScore
                     },
                     {
                         where: {
@@ -259,9 +269,30 @@ exports.computeResults = async (req, res, next) => {
                         }
                     }
                 );
+
+                // Compute positions for this subject
+                subjectData.results.sort((a, b) => b.total_score - a.total_score);
+                let totalScore = 0;
+                for (let i = 0; i < subjectData.results.length; i++) {
+                    const position = i + 1;
+                    const result = subjectData.results[i];
+                    totalScore += result.total_score;
+
+                    await Result.update(
+                        { position: position },
+                        { where: { result_id: result.result_id } }
+                    );
+                }
+
+                // Compute and update subject average
+                const average = subjectData.results.length > 0 ? totalScore / subjectData.results.length : 0;
+                await Subject.update(
+                    { average: average },
+                    { where: { subject_id: subject.subject_id } }
+                );
             }
 
-            // Compute positions based on average scores
+            // Compute overall positions based on average scores
             computedResults
                 .filter(result => result.class_id === class_item.class_id)
                 .sort((a, b) => b.average - a.average)
@@ -288,7 +319,42 @@ exports.computeResults = async (req, res, next) => {
 };
 
 
+async function getImageBuffer(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
+        const resizedBuffer = await sharp(buffer)
+            .resize(200)
+            .png()
+            .toBuffer();
+
+        return resizedBuffer;
+    } catch (error) {
+        console.error('Error fetching or processing image:', error);
+        throw error;
+    }
+}
+
+// async function getImageBuffer(url) {
+//     try {
+//         const response = await axios.get(url, { responseType: 'arraybuffer' });
+//         const buffer = Buffer.from(response.data, 'binary');
+
+//         // Resize and convert to PNG (pdfmake works well with PNGs)
+//         const resizedBuffer = await sharp(buffer)
+//             .resize(200) // Adjust size as needed
+//             .png()
+//             .toBuffer();
+
+//         return resizedBuffer;
+//     } catch (error) {
+//         console.error('Error fetching or processing image:', error);
+//         throw error;
+//     }
+// }
 
 exports.generateStudentResultPDF = async (req, res) => {
     try {
@@ -299,7 +365,15 @@ exports.generateStudentResultPDF = async (req, res) => {
         const enrollment = await StudentEnrollment.findOne({
             where: { student_id: student_id, class_id: class_id, session_id: session_id, term_id: term_id }
         });
+
+        const studentsCount = await StudentEnrollment.count({
+            where: { class_id: class_id, session_id: session_id, term_id: term_id }
+        });
+
         const schoolInfo = await School.findByPk(enrollment.school_id);
+
+        const logoBuffer = await getImageBuffer(schoolInfo.logo);
+        const stampBuffer = await getImageBuffer(schoolInfo.school_stamp);
 
         const assessments = await Assessment.findAll({
             where: { school_id: enrollment.school_id },
@@ -351,7 +425,7 @@ exports.generateStudentResultPDF = async (req, res) => {
             // Add the rest of the columns
             row.push(
                 { text: result.total_score ?? '-', style: 'tableHeader', alignment: 'center' },
-                { text: result.average ?? '-', style: 'tableHeader', alignment: 'center' },
+                { text: result.Subject.average ?? '-', style: 'tableHeader', alignment: 'center' },
                 { text: result.highest_score ?? '-', style: 'tableHeader', alignment: 'center' },
                 { text: result.lowest_score ?? '-', style: 'tableHeader', alignment: 'center' },
                 { text: result.position ?? '-', style: 'tableHeader', alignment: 'center' },
@@ -364,18 +438,18 @@ exports.generateStudentResultPDF = async (req, res) => {
         // Prepare document definition
         const docDefinition = {
             content: [
-                // {
-                //     image: schoolInfo.logo,
-                //     fit: [60, 60],
-                //     alignment: 'center',
-                // },
+                schoolInfo.logo !== null ? {
+                    image: logoBuffer,
+                    fit: [60, 60],
+                    alignment: 'center',
+                } : {},
                 {
                     text: schoolInfo.name,
                     style: 'header',
                     alignment: 'center'
                 },
                 {
-                    text: `${schoolInfo.state}, Nigeria`,
+                    text: schoolInfo.address,
                     style: 'subheader',
                     alignment: 'center'
                 },
@@ -394,13 +468,13 @@ exports.generateStudentResultPDF = async (req, res) => {
                 {
                     columns: [
                         { width: '*', text: `Term: ${termInfo.term_name}`, style: 'top' },
-                        { width: 'auto', text: `Date of Birth: ${student.dob}`, style: 'top' },
+                        { width: 'auto', text: `Date of Birth: ${student.date_of_birth}`, style: 'top' },
                     ]
                 },
                 {
                     columns: [
                         { width: '*', text: `Class: ${classInfo.class_name}`, style: 'top' },
-                        { width: 'auto', text: `Number in Class: ${enrollment.class_size}`, style: 'top' },
+                        { width: 'auto', text: `Number in Class: ${studentsCount}`, style: 'top' },
                     ]
                 },
                 {
@@ -423,20 +497,20 @@ exports.generateStudentResultPDF = async (req, res) => {
                 },
                 {
                     columns: [
-                        { width: '*', text: `CLASS AVERAGE: ${enrollment.class_average}`, style: 'bottom' },
-                        { width: '*', text: `POSITION IN CLASS: ${enrollment.position}`, style: 'bottom' },
-                        { width: 'auto', text: `OUT OF CLASS: ${enrollment.class_size}`, style: 'bottom' },
+                        { width: '*', text: `CLASS AVERAGE: ${enrollment.average}`, style: 'bottom' },
+                        { width: '*', text: `POSITION IN CLASS: ${position_qualifier(enrollment.position)}`, style: 'bottom' },
+                        { width: 'auto', text: `OUT OF CLASS: ${studentsCount}`, style: 'bottom' },
                     ]
                 },
                 {
-                    text: `PRINCIPAL'S REMARKS: ${enrollment.average ?? '-'}`,
+                    text: `PRINCIPAL'S REMARKS: ${htremarkHelper(enrollment.average)}`,
                     style: 'bottom',
                 },
                 {
                     columns: [
-                        { width: '*', text: `NAME OF PRINCIPAL: ${schoolInfo.principal_name}`, style: 'bottom' },
+                        { width: '*', text: `NAME OF PRINCIPAL: ${schoolInfo.head}`, style: 'bottom' },
                         { width: 'auto', text: 'SIGNATURE/STAMP:', style: 'bottom' },
-                        // { width: 'auto', image: schoolInfo.stamp, fit: [40, 40] },
+                        schoolInfo.school_stamp !== null ? { width: 'auto', image: stampBuffer, fit: [40, 40] } : {},
                         { width: 'auto', text: `DATE: ${new Date().toISOString().split('T')[0]}`, style: 'bottom' },
                     ]
                 },

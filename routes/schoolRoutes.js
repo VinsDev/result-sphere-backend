@@ -24,7 +24,14 @@ router.post('/', upload.fields([
     { name: 'school_image', maxCount: 1 },
 ]), schoolController.createSchool);
 router.put('/show-position', authMiddleware, schoolController.updateShowPosition);
-router.put('/this', authMiddleware, schoolController.updateSchool);
+router.put('/this', authMiddleware, upload.fields([
+    { name: 'head_image', maxCount: 1 },
+    { name: 'deputy_1_image', maxCount: 1 },
+    { name: 'deputy_2_image', maxCount: 1 },
+    { name: 'logo', maxCount: 1 },
+    { name: 'school_image', maxCount: 1 },
+    { name: 'school_stamp', maxCount: 1 },
+]), schoolController.updateSchool);
 router.delete('/:id', schoolController.deleteSchool);
 
 router.post('/check-token', schoolController.checkToken);

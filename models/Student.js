@@ -16,6 +16,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     unique: true,
   },
+  gender: {
+    type: DataTypes.ENUM('male', 'female', 'other'),
+    allowNull: false,
+  },
+  date_of_birth: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
   pin: {
     type: DataTypes.STRING,
     allowNull: false,

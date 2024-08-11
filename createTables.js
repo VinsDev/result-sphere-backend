@@ -5,7 +5,8 @@ async function createTables() {
     host: 'localhost',
     user: 'root',
     password: 'winner',
-    database: 'ResultSphere'
+    database: 'ResultSphere',
+    multipleStatements: true 
   });
 
   const dropTables = `
@@ -46,7 +47,8 @@ async function createTables() {
       vision TEXT NOT NULL,
       show_position BOOLEAN NOT NULL DEFAULT false,
       logo VARCHAR(255),
-      school_image VARCHAR(255)
+      school_image VARCHAR(255),
+      school_stamp VARCHAR(255)
     );
   `;
 
@@ -115,6 +117,7 @@ async function createTables() {
       class_id INT,
       term_id INT,
       subject_name VARCHAR(255) NOT NULL,
+      average DECIMAL(10, 2) DEFAULT NULL,
       FOREIGN KEY (school_id) REFERENCES Schools(school_id) ON DELETE CASCADE,
       FOREIGN KEY (class_id) REFERENCES Classes(class_id) ON DELETE CASCADE,
       FOREIGN KEY (term_id) REFERENCES Terms(term_id) ON DELETE CASCADE
@@ -151,16 +154,17 @@ async function createTables() {
   `;
 
   const createStudentsTable = `
-    CREATE TABLE IF NOT EXISTS Students (
-      student_id INT AUTO_INCREMENT PRIMARY KEY,
-      full_name VARCHAR(255) NOT NULL,
-      admission_number VARCHAR(255) NOT NULL UNIQUE,
-      pin VARCHAR(255) NOT NULL,
-      image_url VARCHAR(255),
-      parents_contact_info TEXT NOT NULL
-    );
-  `;
-
+  CREATE TABLE IF NOT EXISTS Students (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    admission_number VARCHAR(255) NOT NULL UNIQUE,
+    gender ENUM('male', 'female', 'other') NOT NULL,
+    date_of_birth DATE NOT NULL,
+    pin VARCHAR(255) NOT NULL,
+    image_url VARCHAR(255),
+    parents_contact_info TEXT NOT NULL
+  );
+`;
   const createStudentEnrollmentsTable = `
   CREATE TABLE IF NOT EXISTS StudentEnrollments (
     enrollment_id INT AUTO_INCREMENT PRIMARY KEY,

@@ -36,6 +36,10 @@ const Subject = sequelize.define('Subject', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  average: {
+    type: DataTypes.DECIMAL(10, 2), // Precision of 10 and scale of 2
+    allowNull: true,
+  },
 }, {
   tableName: 'Subjects',
   timestamps: false,

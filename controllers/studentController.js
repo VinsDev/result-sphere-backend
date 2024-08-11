@@ -97,7 +97,8 @@ exports.createStudent = async (req, res, next) => {
         full_name,
         admission_number,
         pin,
-        // image_url,
+        gender,
+        date_of_birth,
         parents_contact_info
     } = req.body;
 
@@ -109,7 +110,8 @@ exports.createStudent = async (req, res, next) => {
                 full_name,
                 admission_number,
                 pin,
-                // image_url,
+                gender,
+                date_of_birth,
                 parents_contact_info
             }, { transaction: t });
 
