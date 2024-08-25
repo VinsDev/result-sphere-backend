@@ -18,16 +18,16 @@ router.get('/this', authMiddleware, schoolController.getSchool);
 router.get('/:school_id', schoolController.getSchoolById);
 router.post('/', upload.fields([
     { name: 'head_image', maxCount: 1 },
-    { name: 'deputy_1_image', maxCount: 1 },
-    { name: 'deputy_2_image', maxCount: 1 },
+    { name: 'deputy1_image', maxCount: 1 },
+    { name: 'deputy2_image', maxCount: 1 },
     { name: 'logo', maxCount: 1 },
     { name: 'school_image', maxCount: 1 },
 ]), schoolController.createSchool);
 router.put('/show-position', authMiddleware, schoolController.updateShowPosition);
 router.put('/this', authMiddleware, upload.fields([
     { name: 'head_image', maxCount: 1 },
-    { name: 'deputy_1_image', maxCount: 1 },
-    { name: 'deputy_2_image', maxCount: 1 },
+    { name: 'deputy1_image', maxCount: 1 },
+    { name: 'deputy2_image', maxCount: 1 },
     { name: 'logo', maxCount: 1 },
     { name: 'school_image', maxCount: 1 },
     { name: 'school_stamp', maxCount: 1 },

@@ -205,8 +205,8 @@ exports.createSchool = async (req, res, next) => {
         };
 
         const headImageUrl = await uploadFile(req.files.head_image?.[0], 'head-image');
-        const deputy1ImageUrl = await uploadFile(req.files.deputy_1_image?.[0], 'deputy1-image');
-        const deputy2ImageUrl = await uploadFile(req.files.deputy_2_image?.[0], 'deputy2-image');
+        const deputy1ImageUrl = await uploadFile(req.files.deputy1_image?.[0], 'deputy1-image');
+        const deputy2ImageUrl = await uploadFile(req.files.deputy2_image?.[0], 'deputy2-image');
         const logoUrl = await uploadFile(req.files.logo?.[0], 'logo');
         const schoolImageUrl = await uploadFile(req.files.school_image?.[0], 'school-image');
 
@@ -221,7 +221,7 @@ exports.createSchool = async (req, res, next) => {
             head_image: headImageUrl,
             deputy1,
             deputy1_image: deputy1ImageUrl,
-            deputy2,
+            deputy2, 
             deputy2_image: deputy2ImageUrl,
             anthem,
             about,
@@ -405,11 +405,11 @@ exports.updateSchool = async (req, res, next) => {
         if (req.files.head_image?.[0]) {
             updateData.head_image = await uploadFile(req.files.head_image[0], 'head-image');
         }
-        if (req.files.deputy_1_image?.[0]) {
-            updateData.deputy1_image = await uploadFile(req.files.deputy_1_image[0], 'deputy1-image');
+        if (req.files.deputy1_image?.[0]) {
+            updateData.deputy1_image = await uploadFile(req.files.deputy1_image[0], 'deputy1-image');
         }
-        if (req.files.deputy_2_image?.[0]) {
-            updateData.deputy2_image = await uploadFile(req.files.deputy_2_image[0], 'deputy2-image');
+        if (req.files.deputy2_image?.[0]) {
+            updateData.deputy2_image = await uploadFile(req.files.deputy2_image[0], 'deputy2-image');
         }
         if (req.files.logo?.[0]) {
             updateData.logo = await uploadFile(req.files.logo[0], 'logo');
