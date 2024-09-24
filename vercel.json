@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "https://resultsphere.com.ng/api/$1"
+        }
+    ]
+}
