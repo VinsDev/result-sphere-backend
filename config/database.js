@@ -3,6 +3,7 @@ const { Sequelize } = require('sequelize');
 
 let sequelize;
 
+/*
 if (process.env.DATABASE_URL) {
   // Render PostgreSQL database
   sequelize = new Sequelize(process.env.DATABASE_URL, {
@@ -25,6 +26,13 @@ if (process.env.DATABASE_URL) {
     logging: false
   });
 }
+*/
+
+sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
+  dialect: 'mysql',
+  logging: false
+})
 
 sequelize.authenticate()
   .then(() => {
