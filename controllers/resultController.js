@@ -5,7 +5,7 @@ const { getCurrentSessionBySchoolId } = require('./sessionController');
 var PdfPrinter = require('pdfmake');
 var Roboto = require('../fonts/Roboto');
 const axios = require('axios');
-const sharp = require('sharp');
+const Jimp = require('jimp');
 const fetch = require('node-fetch');
 const { htremarkHelper, position_qualifier } = require('../config/utility');
 
@@ -326,10 +326,13 @@ async function getImageBuffer(url) {
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        const resizedBuffer = await sharp(buffer)
-            .resize(200)
-            .png()
-            .toBuffer();
+        // Load the image using Jimp
+        const image = await Jimp.read(buffer);
+
+        // Resize the image and convert it to PNG buffer
+        const resizedBuffer = await image
+            .resize(200, Jimp.AUTO) // Resize width to 200, keeping aspect ratio
+            .getBufferAsync(Jimp.MIME_PNG); // Convert to PNG
 
         return resizedBuffer;
     } catch (error) {
@@ -337,6 +340,7 @@ async function getImageBuffer(url) {
         throw error;
     }
 }
+
 
 // async function getImageBuffer(url) {
 //     try {
